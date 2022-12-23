@@ -47,7 +47,7 @@ class AuthController extends Controller
             $user = Auth::user();
             $token = $user->createToken('token')->plainTextToken;
             $cookie = cookie('cookie_token', $token, 60 * 24);
-            return response(["token" => $token], Response::HTTP_OK)->withCookie($cookie);
+            return response(["token" => $token,"user"=>$user], Response::HTTP_OK)->withCookie($cookie);
         } else {
             return response(["message" => "Credenciales inválidas"], Response::HTTP_UNAUTHORIZED);
         }
@@ -70,8 +70,28 @@ class AuthController extends Controller
     {
 
         $users = User::all();
-        return response()->json([
+        return $users;
+        /*  return response()->json([
             "users" => $users
-        ]);
+        ]); */
+    }
+
+    public function upd(Request $request, $id)
+    {
+
+        $user = User::findOrFail($request->id);
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return $user;
+    }
+
+    public function del($id)
+    {
+
+        $user = User::destroy($id);
+        return $user;
     }
 }
