@@ -9,29 +9,52 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Validator;
+
+
+
 
 
 class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        //validar datos
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed'
-        ]);
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->save();
+        try {
+            // Validar datos de entrada
+            $validator = Validator::make($request->all(), [
+                'name' => 'required',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|confirmed'
+            ]);
 
-        /*   return response()->json([
-            'message' => 'Metodo Register OK'
-        ]); */
-        return response($user, Response::HTTP_ACCEPTED);
+            if ($validator->fails()) {
+                // Mostrar mensaje de error y lista de errores
+                return response()->json([
+                    'message' => 'El email ya está registrado',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+
+
+            // Si no hay errores de validación, crea el nuevo usuario
+            $user = new User();
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->save();
+
+            // Devuelve una respuesta al cliente indicando que el usuario se ha creado correctamente
+            return response($user, Response::HTTP_ACCEPTED);
+        } catch (\Exception $e) {
+            // Si hay errores de validación, devuelve una respuesta con el código de estado HTTP 422 (Unprocessable Entity)
+            // y el mensaje de error correspondiente
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 422);
+        }
     }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -47,7 +70,7 @@ class AuthController extends Controller
             $user = Auth::user();
             $token = $user->createToken('token');
             $cookie = cookie('cookie_token', $token, 60 * 24);
-            return response(["token" => $token,"user"=>$user], Response::HTTP_OK)->withCookie($cookie);
+            return response(["token" => $token, "user" => $user], Response::HTTP_OK)->withCookie($cookie);
         } else {
             return response(["message" => "Credenciales inválidas"], Response::HTTP_UNAUTHORIZED);
         }
