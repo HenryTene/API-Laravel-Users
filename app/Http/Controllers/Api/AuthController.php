@@ -68,13 +68,14 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            $token = $user->createToken('token');
+            $token = $user->createToken('token')->plainTextToken;
             $cookie = cookie('cookie_token', $token, 60 * 24);
             return response(["token" => $token, "user" => $user], Response::HTTP_OK)->withCookie($cookie);
         } else {
             return response(["message" => "Credenciales inválidas"], Response::HTTP_UNAUTHORIZED);
         }
     }
+
     public function userProfile(Request $request)
     {
 
@@ -83,15 +84,16 @@ class AuthController extends Controller
             "userData" => auth()->user()
         ], Response::HTTP_OK);
     }
+
     public function logout()
     {
 
         $cookie = Cookie::forget('cookie_token');
         return response(["message" => "Cierre de sesión OK"], Response::HTTP_OK)->withCookie($cookie);
     }
+
     public function allUSers()
     {
-
         $users = User::all();
         return $users;
         /*  return response()->json([
@@ -113,8 +115,15 @@ class AuthController extends Controller
 
     public function del($id)
     {
-
-        $user = User::destroy($id);
-        return $user;
+        try {
+            $user = User::destroy($id);
+            return response()->json([
+                "message" => "El usuario ha sido eliminado con éxito"
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Ha ocurrido un error al eliminar el usuario"
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }
