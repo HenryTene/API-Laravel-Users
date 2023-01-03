@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+
 
 
 
@@ -55,24 +57,29 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-
-            'email' => ['required', 'email'],
-            'password' => ['required']
-        ]);
-        /*  return response()->json([
-            'message' => 'Metodo Login OK'
-        ]); */
+        try {
+            $credentials = $request->validate([
+                'email' => ['required', 'email'],
+                'password' => ['required']
+            ], [
+                'email.required' => 'Debe ingresar un correo',
+                'password.required' => 'Debe ingresar su contraseña'
+            ]);
+        } catch (ValidationException $e) {
+            return response(["message" => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             $token = $user->createToken('token')->plainTextToken;
             $cookie = cookie('cookie_token', $token, 60 * 24);
-            return response(["token" => $token, "user" => $user], Response::HTTP_OK)->withCookie($cookie);
+            return response(["message" => "Inicio de sesión correcto", "token" => $token, "user" => $user], Response::HTTP_OK)->withCookie($cookie);
         } else {
             return response(["message" => "Credenciales inválidas"], Response::HTTP_UNAUTHORIZED);
         }
     }
+
+
 
     public function userProfile(Request $request)
     {
