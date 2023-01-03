@@ -39,9 +39,12 @@ class UserController extends Controller
 
 
         $user = User::findOrFail($request->id);
+
+        $request->validate([
+            'email' => ['required', 'email', 'unique:users,email,' . $user->id]
+        ]);
         $user->name = $request->name;
         $user->email = $request->email;
-        /* $user->password =Hash::make( $request->password); */
         $user->save();
 
         return $user;
