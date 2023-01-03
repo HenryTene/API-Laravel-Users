@@ -35,8 +35,6 @@ class AuthController extends Controller
                 ], 422);
             }
 
-
-
             // Si no hay errores de validación, crea el nuevo usuario
             $user = new User();
             $user->name = $request->name;
