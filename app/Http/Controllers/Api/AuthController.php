@@ -37,14 +37,21 @@ class AuthController extends Controller
                 'name' => 'required',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|confirmed|min:8|strong_password'
+            ],[
+                'email.unique' => 'El email ya está registrado.',
+                'password.confirmed' => 'Las contraseñas no coinciden.'
             ]);
 
             if ($validator->fails()) {
-                // Muestra el mensaje de error personalizado
                 return response()->json([
-                    'message' => $validator->errors()->first('password'),
+                    /* 'message' => 'Hay errores de validación.',
+                    'errors' => $validator->errors() */
+
+                    'message' => $validator->errors()->first(),
                 ], 422);
             }
+
+
 
             // Si no hay errores de validación, crea el nuevo usuario
             $user = new User();
