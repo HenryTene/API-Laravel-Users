@@ -22,18 +22,27 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         try {
-            // Validar datos de entrada
+            // Crea la regla de contraseña segura
+            Validator::extend('strong_password', function($attribute, $value, $parameters, $validator) {
+                return preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/', $value);
+            });
+
+            // Reemplaza el mensaje de error de la regla de contraseña segura
+            Validator::replacer('strong_password', function($message, $attribute, $rule, $parameters) {
+                return "La contraseña debe contener al menos una letra minúscula, al menos una letra mayúscula, al menos un número y una longitud mínima de 8 caracteres.";
+            });
+
+            // Valida los datos de entrada
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
                 'email' => 'required|email|unique:users,email',
-                'password' => 'required|confirmed'
+                'password' => 'required|confirmed|min:8|strong_password'
             ]);
 
             if ($validator->fails()) {
-                // Mostrar mensaje de error y lista de errores
+                // Muestra el mensaje de error personalizado
                 return response()->json([
-                    'message' => 'El email ya está registrado',
-                    'errors' => $validator->errors()
+                    'message' => $validator->errors()->first('password'),
                 ], 422);
             }
 
@@ -54,6 +63,7 @@ class AuthController extends Controller
             ], 422);
         }
     }
+
 
     public function login(Request $request)
     {
