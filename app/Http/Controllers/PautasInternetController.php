@@ -14,6 +14,7 @@ class PautasInternetController extends Controller
     public function index()
     {
         try {
+            $pautas = PautasInternet::paginate(10);
             $pautas = PautasInternet::all();
             return response()->json(['pautas' => $pautas]);
         } catch (\Exception $e) {
@@ -36,26 +37,26 @@ class PautasInternetController extends Controller
     }
 
     public function store(Request $request)
-{
-    try {
-        // Validate the request data
-        $validatedData = $request->validate([
-            'fec_pauta'    => 'required|date',
-            'des_titular'  => 'required|string',
-            'des_resumen'  => 'required|string',
-            'des_ruta_web' => 'required|string',
-            'des_ruta_imagen' => 'required|string',
-            'des_ruta_video' => 'required|string',
-        ]);
-        // Create a new PautaInternet instance
-        $pauta = PautasInternet::create($validatedData);
-        // Return a response indicating that the PautaInternet was created successfully
-        return response()->json(['message' => 'PautaInternet creada correctamente.', 'pauta' => $pauta], 201);
-    } catch (\Exception $e) {
-        // If there are validation errors, return a response with the corresponding status code and error message
-        return response()->json(['message' => $e->getMessage()], 400);
+    {
+        try {
+            // Validate the request data
+            $validatedData = $request->validate([
+                'fec_pauta'    => 'required|date',
+                'des_titular'  => 'required|string',
+                'des_resumen'  => 'required|string',
+                'des_ruta_web' => 'required|string',
+                'des_ruta_imagen' => 'required|string',
+                'des_ruta_video' => 'required|string',
+            ]);
+            // Create a new PautaInternet instance
+            $pauta = PautasInternet::create($validatedData);
+            // Return a response indicating that the PautaInternet was created successfully
+            return response()->json(['message' => 'PautaInternet creada correctamente.', 'pauta' => $pauta], 201);
+        } catch (\Exception $e) {
+            // If there are validation errors, return a response with the corresponding status code and error message
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
-}
 
 
     public function delete($id)
@@ -112,6 +113,18 @@ class PautasInternetController extends Controller
             // Si ocurre un error, devolver una respuesta con el código de estado HTTP 500 (Internal Server Error)
             // y el mensaje de error correspondiente
             return response()->json(['message' => 'Ha ocurrido un error al editar la pauta'], 500);
+        }
+    }
+
+    public function pagination($per_page)
+    {
+        try {
+            $pautas = PautasInternet::paginate($per_page);
+            return response()->json(['pautas' => $pautas]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al obtener las pautas: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
