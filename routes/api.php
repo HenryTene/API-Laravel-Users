@@ -25,6 +25,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('pautas_internet/{id}', [PautasInternetController::class, 'show']);
     Route::put('pautas_internet/{id}', [PautasInternetController::class, 'update']);
     Route::delete('pautas_internet/{id}', [PautasInternetController::class, 'delete']);
+    Route::get('pautas_internet/pagination/{per_page}', [PautasInternetController::class, 'pagination']);
 
 });
 
